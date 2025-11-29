@@ -9,10 +9,9 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY prisma ./prisma
+COPY . .
 
 RUN pnpm prisma generate
-
-COPY . .
 
 RUN pnpm build
 
@@ -31,6 +30,7 @@ COPY prisma ./prisma
 RUN pnpm prisma generate
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/generated ./src/generated
 
 COPY templates ./templates
 
