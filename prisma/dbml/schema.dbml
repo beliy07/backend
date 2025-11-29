@@ -1,0 +1,96 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table users {
+  id String [pk]
+  email String [unique, not null]
+  name String [not null, default: 'Пользователь']
+  orders orders [not null]
+  reviews reviews [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table categories {
+  id String [pk]
+  name String [not null]
+  products products [not null]
+}
+
+Table products {
+  id String [pk]
+  name String [not null]
+  description String
+  features String[] [not null]
+  price Decimal [not null]
+  images String[] [not null]
+  productionDays Int [not null, default: 1]
+  categoryId String
+  category categories
+  variants product_variants [not null]
+  orders orders [not null]
+  reviews reviews [not null]
+}
+
+Table product_variants {
+  id String [pk]
+  label String [not null]
+  value String [not null]
+  price Decimal [not null]
+  productId String [not null]
+  product products [not null]
+
+  indexes {
+    (productId, label, value) [unique]
+  }
+}
+
+Table orders {
+  id Int [pk, increment]
+  image String [not null]
+  status OrderStatus [not null, default: 'PENDING']
+  amount Int [not null, default: 1]
+  total Decimal [not null]
+  variants Json
+  userId String [not null]
+  productId String [not null]
+  user users [not null]
+  product products [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table reviews {
+  id String [pk]
+  rating Int [not null]
+  comment String
+  userId String [not null]
+  productId String [not null]
+  user users [not null]
+  product products [not null]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (userId, productId) [unique]
+  }
+}
+
+Enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  COMPLETED
+}
+
+Ref: products.categoryId > categories.id [delete: Set Null]
+
+Ref: product_variants.productId > products.id [delete: Cascade]
+
+Ref: orders.userId > users.id [delete: Cascade]
+
+Ref: orders.productId > products.id [delete: Cascade]
+
+Ref: reviews.userId > users.id [delete: Cascade]
+
+Ref: reviews.productId > products.id [delete: Cascade]

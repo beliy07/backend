@@ -1,0 +1,110 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  COMPLETED
+}
+
+model User {
+  id    String @id @default(uuid())
+  email String @unique
+  name  String @default("Пользователь")
+
+  orders  Order[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id   String @id
+  name String
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id             String   @id @default(uuid())
+  name           String
+  description    String?
+  features       String[] @default([])
+  price          Decimal  @db.Decimal(10, 2)
+  images         String[]
+  productionDays Int      @default(1)
+
+  categoryId String?
+  category   Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  variants   ProductVariant[]
+  orders     Order[]
+  reviews    Review[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id    String  @id @default(uuid())
+  label String
+  value String
+  price Decimal @db.Decimal(10, 2)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, label, value])
+  @@map("product_variants")
+}
+
+model Order {
+  id       Int         @id @default(autoincrement())
+  image    String
+  status   OrderStatus @default(PENDING)
+  amount   Int         @default(1)
+  total    Decimal     @db.Decimal(10, 2)
+  variants Json?
+
+  userId    String
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model Review {
+  id      String  @id @default(uuid())
+  rating  Int
+  comment String?
+
+  userId    String
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
