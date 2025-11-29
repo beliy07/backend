@@ -11,8 +11,6 @@ RUN pnpm install --frozen-lockfile
 COPY prisma ./prisma
 COPY . .
 
-RUN pnpm prisma generate
-
 RUN pnpm build
 
 FROM node:20-alpine AS production
@@ -26,9 +24,6 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 COPY prisma ./prisma
-
-RUN pnpm prisma generate
-
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/generated ./src/generated
 
